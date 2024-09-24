@@ -4,6 +4,7 @@ import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.Random;
@@ -32,14 +33,25 @@ class gameframe extends JFrame {
 }
 
 
-class mypanel extends JPanel implements MouseMotionListener {
+class mypanel extends JPanel  {
+
     Image[] stars = new Image[10]; // Array สำหรับเก็บรูปดาว
-    int[][] starPositions = new int[10][4]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
-    int[][] starVelocities = new int[10][4]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
+    int[][] starPositions = new int[10][5]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
+    int[][] starVelocities = new int[10][5]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
+
+     ///  เป้าเล็ง  /////////
+     int bbx = 0; 
+     int bby = 0;
     Random random = new Random();
+
     Image img = Toolkit.getDefaultToolkit().createImage(
         System.getProperty("user.dir") + File.separator + "bg2.jpg");
+    Image bomb = Toolkit.getDefaultToolkit().createImage(
+        System.getProperty("user.dir")+File.separator + "bomb.gif");
+
+
     int starSize = 60; // ขนาดของดาวแต่ละดวง
+
 
     public mypanel() {
         setBounds(0, 0, 1536, 863);
@@ -56,9 +68,68 @@ class mypanel extends JPanel implements MouseMotionListener {
 
             // สุ่มความเร็วในการขยับ x และ y (ค่าบวกหรือลบ)
             starVelocities[i][0] = random.nextInt(20) - 10; // ค่าความเร็วระหว่าง -10 ถึง 10 สำหรับแกน x
-            starVelocities[i][1] = random.nextInt(20) - 5; // ค่าความเร็วระหว่าง -5 ถึง 5 สำหรับแกน y
+            starVelocities[i][1] = random.nextInt(20) - 0; // ค่าความเร็วระหว่าง 0 ถึง 10 สำหรับแกน y
         }
+       
 
+        addMouseMotionListener(new MouseMotionListener() {
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+              
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'mouseMoved'");
+            }
+
+          
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                panelMouseMove(e);
+            }
+            
+        });
+        addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'mouseClicked'");
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'mouseReleased'");
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'mouseEntered'");
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'mouseExited'");
+            }
+            
+        });
+
+    }
+    
+    private void panelMouseMove(MouseEvent e) {
+        System.out.println(e.getX()+" "+e.getY());
+
+        bbx = e.getX()-40;
+        bby = e.getY()-40;
+        repaint();
     }
 
     // ตรวจสอบการชนของดาว
@@ -112,19 +183,9 @@ class mypanel extends JPanel implements MouseMotionListener {
                 g.drawImage(stars[i], x, y, starSize, starSize, this);
             }
         }
+        g.drawImage(bomb, bbx, bby, this);
     }
 
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        // ยังไม่ใช้งาน
-        throw new UnsupportedOperationException("Unimplemented method 'mouseDragged'");
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        // ยังไม่ใช้งาน
-        throw new UnsupportedOperationException("Unimplemented method 'mouseMoved'");
-    }
 }
 class myThread extends Thread{
     mypanel panel;
@@ -138,13 +199,13 @@ class myThread extends Thread{
  
        while (true) { 
             try {
-            Thread.sleep(50);
-        } catch (InterruptedException exx) {
+            Thread.sleep(60);
+                 } 
+        catch (InterruptedException exx) {
          
             exx.printStackTrace();
         }
          panel.updateStarPositions();
-                }
-       }
-
+      }
+    }
 }
