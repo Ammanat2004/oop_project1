@@ -7,15 +7,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class myfram {
     public static void main(String[] args) {
         gameframe gf = new gameframe();
-        gf.setVisible(true);
+        myThread t1 = new myThread(gf.m);
+        t1.start();
+         gf.setVisible(true);
     }
 }
 
@@ -31,15 +31,15 @@ class gameframe extends JFrame {
     }
 }
 
+
 class mypanel extends JPanel implements MouseMotionListener {
-    Image[] stars = new Image[20]; // Array สำหรับเก็บรูปดาว
-    int[][] starPositions = new int[20][2]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
-    int[][] starVelocities = new int[20][2]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
+    Image[] stars = new Image[10]; // Array สำหรับเก็บรูปดาว
+    int[][] starPositions = new int[10][4]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
+    int[][] starVelocities = new int[10][4]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
     Random random = new Random();
     Image img = Toolkit.getDefaultToolkit().createImage(
         System.getProperty("user.dir") + File.separator + "bg2.jpg");
-    Timer timer;
-    int starSize = 50; // ขนาดของดาวแต่ละดวง
+    int starSize = 60; // ขนาดของดาวแต่ละดวง
 
     public mypanel() {
         setBounds(0, 0, 1536, 863);
@@ -51,17 +51,14 @@ class mypanel extends JPanel implements MouseMotionListener {
                     .createImage(System.getProperty("user.dir") + File.separator + (i + 1) + ".png");
 
             // สุ่มตำแหน่ง x และ y ของรูปดาว
-            starPositions[i][0] = random.nextInt(900); // ค่าระหว่าง 0 ถึง 900
-            starPositions[i][1] = random.nextInt(500); // ค่าระหว่าง 0 ถึง 500
+            starPositions[i][0] = random.nextInt(1200); // ค่าระหว่าง 0 ถึง 900
+            starPositions[i][1] = random.nextInt(600); // ค่าระหว่าง 0 ถึง 500
 
             // สุ่มความเร็วในการขยับ x และ y (ค่าบวกหรือลบ)
-            starVelocities[i][0] = random.nextInt(11) - 5; // ค่าความเร็วระหว่าง -5 ถึง 5 สำหรับแกน x
-            starVelocities[i][1] = random.nextInt(11) - 5; // ค่าความเร็วระหว่าง -5 ถึง 5 สำหรับแกน y
+            starVelocities[i][0] = random.nextInt(20) - 10; // ค่าความเร็วระหว่าง -10 ถึง 10 สำหรับแกน x
+            starVelocities[i][1] = random.nextInt(20) - 5; // ค่าความเร็วระหว่าง -5 ถึง 5 สำหรับแกน y
         }
 
-        // ตั้ง Timer เพื่ออัปเดตตำแหน่งดาวทุก ๆ 100 มิลลิวินาที
-        timer = new Timer();
-        timer.schedule(new MyTimer(this), 0, 10); // อัปเดตทุกๆ 100 มิลลิวินาที
     }
 
     // ตรวจสอบการชนของดาว
@@ -129,17 +126,25 @@ class mypanel extends JPanel implements MouseMotionListener {
         throw new UnsupportedOperationException("Unimplemented method 'mouseMoved'");
     }
 }
-
-class MyTimer extends TimerTask {
+class myThread extends Thread{
     mypanel panel;
-
-    MyTimer(mypanel panel) {
+    
+    public myThread(mypanel panel) {
         this.panel = panel;
     }
 
     @Override
     public void run() {
-        // อัปเดตตำแหน่งดาวทุกครั้งที่ Timer ทำงาน
-        panel.updateStarPositions();
-    }
+ 
+       while (true) { 
+            try {
+            Thread.sleep(50);
+        } catch (InterruptedException exx) {
+         
+            exx.printStackTrace();
+        }
+         panel.updateStarPositions();
+                }
+       }
+
 }
