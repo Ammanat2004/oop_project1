@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.Graphics;
-import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
@@ -8,6 +7,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.Random;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -16,14 +20,14 @@ public class myfram {
         gameframe gf = new gameframe();
         myThread t1 = new myThread(gf.m);
         t1.start();
-         gf.setVisible(true);
+        gf.setVisible(true);
     }
 }
 
 class gameframe extends JFrame {
     mypanel m = new mypanel();
 
-    public gameframe() throws HeadlessException {
+    public gameframe() {
         setBounds(0, 0, 1536, 863);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -32,26 +36,21 @@ class gameframe extends JFrame {
     }
 }
 
-
-class mypanel extends JPanel  {
+class mypanel extends JPanel {
 
     Image[] stars = new Image[10]; // Array สำหรับเก็บรูปดาว
-    int[][] starPositions = new int[10][5]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
-    int[][] starVelocities = new int[10][5]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
+    int[][] starPositions = new int[10][4]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
+    int[][] starVelocities = new int[10][4]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
 
-     ///  เป้าเล็ง  /////////
-     int bbx = 0; 
-     int bby = 0;
+    // เป้าเล็ง
+    int bbx = 0;
+    int bby = 0;
     Random random = new Random();
 
-    Image img = Toolkit.getDefaultToolkit().createImage(
-        System.getProperty("user.dir") + File.separator + "bg2.jpg");
-    Image bomb = Toolkit.getDefaultToolkit().createImage(
-        System.getProperty("user.dir")+File.separator + "bomb.gif");
-
+    Image img = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bg2.jpg");
+    Image bomb = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bomb.gif");
 
     int starSize = 60; // ขนาดของดาวแต่ละดวง
-
 
     public mypanel() {
         setBounds(0, 0, 1536, 863);
@@ -63,72 +62,58 @@ class mypanel extends JPanel  {
                     .createImage(System.getProperty("user.dir") + File.separator + (i + 1) + ".png");
 
             // สุ่มตำแหน่ง x และ y ของรูปดาว
-            starPositions[i][0] = random.nextInt(1200); // ค่าระหว่าง 0 ถึง 900
-            starPositions[i][1] = random.nextInt(600); // ค่าระหว่าง 0 ถึง 500
+            starPositions[i][0] = random.nextInt(1200); // ค่าระหว่าง 0 ถึง 1200
+            starPositions[i][1] = random.nextInt(600); // ค่าระหว่าง 0 ถึง 600
 
             // สุ่มความเร็วในการขยับ x และ y (ค่าบวกหรือลบ)
-            starVelocities[i][0] = random.nextInt(20) - 10; // ค่าความเร็วระหว่าง -10 ถึง 10 สำหรับแกน x
-            starVelocities[i][1] = random.nextInt(20) - 0; // ค่าความเร็วระหว่าง 0 ถึง 10 สำหรับแกน y
+            starVelocities[i][0] = random.nextInt(20) - 10;
+            starVelocities[i][1] = random.nextInt(20) - 5; 
         }
-       
 
         addMouseMotionListener(new MouseMotionListener() {
-
-            @Override
-            public void mouseDragged(MouseEvent e) {
-              
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'mouseMoved'");
-            }
-
-          
-
             @Override
             public void mouseMoved(MouseEvent e) {
                 panelMouseMove(e);
             }
-            
-        });
-        addMouseListener(new MouseListener() {
 
             @Override
+            public void mouseDragged(MouseEvent e) {
+                // Optional: Implement dragging functionality
+            }
+        });
+
+        addMouseListener(new MouseListener() {
+            @Override
             public void mouseClicked(MouseEvent e) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'mouseClicked'");
+                // Optional: Implement functionality for click
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-                
+                playsound ps = new playsound();
+                ps.start(); // เล่นเสียงเมื่อกดเมาส์
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'mouseReleased'");
+                // Optional: Implement if needed
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'mouseEntered'");
+                // Optional: Implement if needed
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'mouseExited'");
+                // Optional: Implement if needed
             }
-            
         });
-
     }
-    
-    private void panelMouseMove(MouseEvent e) {
-        System.out.println(e.getX()+" "+e.getY());
 
-        bbx = e.getX()-40;
-        bby = e.getY()-40;
+    private void panelMouseMove(MouseEvent e) {
+        bbx = e.getX() - 40;
+        bby = e.getY() - 40;
         repaint();
     }
 
@@ -136,12 +121,10 @@ class mypanel extends JPanel  {
     public void checkCollision() {
         for (int i = 0; i < stars.length; i++) {
             for (int j = i + 1; j < stars.length; j++) {
-                // คำนวณระยะห่างระหว่างดาวสองดวง
                 int dx = starPositions[i][0] - starPositions[j][0];
                 int dy = starPositions[i][1] - starPositions[j][1];
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
-                // ถ้าระยะห่างน้อยกว่าผลรวมของรัศมี (ถือว่าชนกัน)
                 if (distance < starSize) {
                     // เด้งกลับโดยการสลับความเร็วในแกน x และ y
                     int[] tempVelocity = starVelocities[i];
@@ -185,27 +168,47 @@ class mypanel extends JPanel  {
         }
         g.drawImage(bomb, bbx, bby, this);
     }
-
 }
-class myThread extends Thread{
+
+class playsound extends Thread {
+    @Override
+    public void run() {
+        try {
+            File gun = new File(System.getProperty("user.dir") + File.separator + "gun.wav");
+            if (gun.exists()) {
+                AudioInputStream ast = AudioSystem.getAudioInputStream(gun);
+                AudioFormat afm = ast.getFormat();
+                DataLine.Info info = new DataLine.Info(Clip.class, afm);
+                Clip clip = (Clip) AudioSystem.getLine(info);
+                clip.open(ast);
+                clip.start();
+                Thread.sleep(1000); // เล่นเสียง 1 วินาที
+                clip.close();
+            } else {
+                System.out.println("ไม่พบไฟล์เสียง!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class myThread extends Thread {
     mypanel panel;
-    
+
     public myThread(mypanel panel) {
         this.panel = panel;
     }
 
     @Override
     public void run() {
- 
-       while (true) { 
+        while (true) {
             try {
-            Thread.sleep(60);
-                 } 
-        catch (InterruptedException exx) {
-         
-            exx.printStackTrace();
+                Thread.sleep(60);
+            } catch (InterruptedException exx) {
+                exx.printStackTrace();
+            }
+            panel.updateStarPositions();
         }
-         panel.updateStarPositions();
-      }
     }
 }
