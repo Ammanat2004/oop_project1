@@ -90,8 +90,8 @@ class mypanel extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                playsound ps = new playsound();
-                ps.start(); // เล่นเสียงเมื่อกดเมาส์
+                playsound play = new playsound();
+                play.start();
             }
 
             @Override
@@ -173,24 +173,28 @@ class mypanel extends JPanel {
 class playsound extends Thread {
     @Override
     public void run() {
-        try {
-            File gun = new File(System.getProperty("user.dir") + File.separator + "gun.wav");
-            if (gun.exists()) {
-                AudioInputStream ast = AudioSystem.getAudioInputStream(gun);
-                AudioFormat afm = ast.getFormat();
-                DataLine.Info info = new DataLine.Info(Clip.class, afm);
+        while (true) { 
+             try {
+            File stars = new File(System.getProperty("user.dir") +
+             File.separator + "stars.wav");
+    
+                AudioInputStream stream = AudioSystem.getAudioInputStream(stars);
+                AudioFormat format = stream.getFormat();
+                DataLine.Info info = new DataLine.Info(Clip.class, format);
                 Clip clip = (Clip) AudioSystem.getLine(info);
-                clip.open(ast);
+                clip.open(stream);
                 clip.start();
                 Thread.sleep(1000); // เล่นเสียง 1 วินาที
                 clip.close();
-            } else {
-                System.out.println("ไม่พบไฟล์เสียง!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+          
+        } catch (Exception exx) {
+            exx.printStackTrace();
         }
+        
     }
+    
+ }
+      
 }
 
 class myThread extends Thread {
@@ -199,7 +203,6 @@ class myThread extends Thread {
     public myThread(mypanel panel) {
         this.panel = panel;
     }
-
     @Override
     public void run() {
         while (true) {
