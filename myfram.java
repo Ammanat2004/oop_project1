@@ -10,8 +10,10 @@ import java.util.Random;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class myfram {
     public static void main(String[] args) {
@@ -36,19 +38,24 @@ class gameframe extends JFrame {
 
 class mypanel extends JPanel {
 
-    Image[] stars = new Image[10]; // Array สำหรับเก็บรูปดาว
-    int[][] starPositions = new int[10][4]; // เก็บตำแหน่ง x, y ของดาวแต่ละดวง
-    int[][] starVelocities = new int[10][4]; // เก็บความเร็ว x, y ของดาวแต่ละดวง
+    int n = 10;
+    Image[] stars = new Image[n];
+    int[][] starPositions = new int[n][2];
+    int[][] starVelocities = new int[n][2];
 
-    // เป้าเล็ง
     int bbx = 0;
     int bby = 0;
     Random random = new Random();
 
-    Image img = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bg2.jpg");
-    Image bomb = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bomb.gif");
+    boolean isClick = true;
+    boolean[] isClickStar = new boolean[n];
 
-    int starSize = 60; // ขนาดของดาวแต่ละดวง
+    Image img = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bg2.jpg");
+    ImageIcon bombIcon = new ImageIcon(System.getProperty("user.dir") + File.separator + "bomb.gif");
+
+    int starSize = 60;
+    boolean showBomb = false; // สถานะการแสดง bomb
+    Timer bombTimer; // Timer สำหรับจัดการเวลา
 
     public mypanel() {
         setBounds(0, 0, 1536, 863);
@@ -59,13 +66,13 @@ class mypanel extends JPanel {
             stars[i] = Toolkit.getDefaultToolkit()
                     .createImage(System.getProperty("user.dir") + File.separator + (i + 1) + ".png");
 
-            // สุ่มตำแหน่ง x และ y ของรูปดาว
-            starPositions[i][0] = random.nextInt(1200); // ค่าระหว่าง 0 ถึง 1200
-            starPositions[i][1] = random.nextInt(600); // ค่าระหว่าง 0 ถึง 600
+            starPositions[i][0] = random.nextInt(1200);
+            starPositions[i][1] = random.nextInt(600);
 
-            // สุ่มความเร็วในการขยับ x และ y (ค่าบวกหรือลบ)
             starVelocities[i][0] = random.nextInt(20) - 10;
             starVelocities[i][1] = random.nextInt(20) - 5;
+
+            isClickStar[i] = true;
         }
 
         addMouseMotionListener(new MouseMotionListener() {
@@ -76,34 +83,83 @@ class mypanel extends JPanel {
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                // Optional: Implement dragging functionality
             }
         });
 
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Optional: Implement functionality for click
+                bbx = e.getX();
+                bby = e.getY();
+
+                if (isClick) {
+                    isClick = false;
+                }
+
+                // เสียงระเบิดระเบิด
+                try {
+                    String BlastSter = "meteorite.wav";
+                    File file = new File(BlastSter);
+                    AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+
+                    Clip blast = AudioSystem.getClip();
+                    blast.open(audioStream);
+                    blast.start();
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                for (int i = 0; i < n; i++) {
+                    if (isClickStar[i] && bbx >= starPositions[i][0] && bbx <= starPositions[i][0] + 100
+                            && bby >= starPositions[i][1] && bby <= starPositions[i][1] + 100) {
+                        isClickStar[i] = false;
+                    }
+                }
+
+                // เริ่มแสดง bomb
+                showBomb = true;
+
+                // หยุด Timer ถ้ามีอยู่แล้ว
+                if (bombTimer != null && bombTimer.isRunning()) {
+                    bombTimer.stop();
+                }
+
+                // ตั้งค่า Timer ให้ซ่อน bomb หลังจาก 3 วินาที
+                bombTimer = new Timer(3000, e1 -> {
+
+                    showBomb = false; // ซ่อน bomb หลังจาก 3 วินาที
+
+                });
+
+                bombTimer.setRepeats(false); // ทำให้ Timer ไม่ทำงานซ้ำ
+                bombTimer.start(); // เริ่ม Timer
+
+                // ตรวจสอบว่าดาวทั้งหมดถูกคลิกแล้วหรือไม่
+                boolean AllStarsClicked = true;
+
+                for (boolean clicked : isClickStar) {
+                    if (clicked) {
+                        AllStarsClicked = false;
+                        break;
+                    }
+                }
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                // Optional: Implement if needed
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                // Optional: Implement if needed
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                // Optional: Implement if needed
             }
         });
     }
@@ -114,7 +170,6 @@ class mypanel extends JPanel {
         repaint();
     }
 
-    // ตรวจสอบการชนของดาว
     public void checkCollision() {
         for (int i = 0; i < stars.length; i++) {
             for (int j = i + 1; j < stars.length; j++) {
@@ -123,12 +178,9 @@ class mypanel extends JPanel {
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < starSize) {
-
-                    // เล่นเสียงชน
-                    playsound playSword = new playsound(); // เล่นเสียงชน
+                    playsound playSword = new playsound();
                     playSword.start();
 
-                    // เด้งกลับโดยการสลับความเร็วในแกน x และ y
                     int[] tempVelocity = starVelocities[i];
                     starVelocities[i] = starVelocities[j];
                     starVelocities[j] = tempVelocity;
@@ -137,23 +189,22 @@ class mypanel extends JPanel {
         }
     }
 
-    // อัปเดตตำแหน่งของดาว
     public void updateStarPositions() {
-        checkCollision(); // ตรวจสอบการชนก่อนอัปเดตตำแหน่ง
+        checkCollision();
 
         for (int i = 0; i < stars.length; i++) {
-            starPositions[i][0] += starVelocities[i][0]; // ขยับตำแหน่ง x
-            starPositions[i][1] += starVelocities[i][1]; // ขยับตำแหน่ง y
+            starPositions[i][0] += starVelocities[i][0];
+            starPositions[i][1] += starVelocities[i][1];
 
-            // ตรวจสอบว่าดาวอยู่ภายในขอบเขตหน้าจอ ถ้าออกนอกให้เด้งกลับ
             if (starPositions[i][0] < 0 || starPositions[i][0] > getWidth() - starSize) {
-                starVelocities[i][0] = -starVelocities[i][0]; // เปลี่ยนทิศทางแกน x
+                starVelocities[i][0] = -starVelocities[i][0];
             }
             if (starPositions[i][1] < 0 || starPositions[i][1] > getHeight() - starSize) {
-                starVelocities[i][1] = -starVelocities[i][1]; // เปลี่ยนทิศทางแกน y
+                starVelocities[i][1] = -starVelocities[i][1];
             }
         }
-        repaint(); // วาดหน้าจอใหม่หลังจากอัปเดตตำแหน่ง
+
+        repaint();
     }
 
     @Override
@@ -162,13 +213,16 @@ class mypanel extends JPanel {
         g.drawImage(img, 0, 0, this.getWidth(), this.getHeight(), this);
 
         for (int i = 0; i < stars.length; i++) {
-            if (stars[i] != null) {
+            if (isClickStar[i] && stars[i] != null) {
                 int x = starPositions[i][0];
                 int y = starPositions[i][1];
                 g.drawImage(stars[i], x, y, starSize, starSize, this);
             }
         }
-        g.drawImage(bomb, bbx, bby, this);
+
+        if (showBomb) { // แสดง Bomb ถ้าต้องการ
+            g.drawImage(bombIcon.getImage(), bbx - 40, bby - 40, 80, 80, this);
+        }
     }
 }
 
@@ -177,37 +231,33 @@ class playsound extends Thread {
     @Override
     public void run() {
         try {
-            // โหลดไฟล์เสียง
             String FileSound = "sword.wav";
-            File file = new File(FileSound);
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
-
+            AudioInputStream audio = AudioSystem.getAudioInputStream(new File(FileSound));
             Clip clip = AudioSystem.getClip();
-            clip.open(audioStream);
+            clip.open(audio);
             clip.start();
-
-        } catch (Exception exx) {
-            exx.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(e);
         }
     }
 }
 
 class myThread extends Thread {
-    mypanel panel;
+    mypanel m;
 
-    public myThread(mypanel panel) {
-        this.panel = panel;
+    public myThread(mypanel m) {
+        this.m = m;
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                Thread.sleep(60);
-            } catch (InterruptedException exx) {
-                exx.printStackTrace();
+                Thread.sleep(20);
+                m.updateStarPositions();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            panel.updateStarPositions();
         }
     }
 }
