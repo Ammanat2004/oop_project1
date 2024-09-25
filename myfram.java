@@ -7,11 +7,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.Random;
-import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -67,7 +65,7 @@ class mypanel extends JPanel {
 
             // สุ่มความเร็วในการขยับ x และ y (ค่าบวกหรือลบ)
             starVelocities[i][0] = random.nextInt(20) - 10;
-            starVelocities[i][1] = random.nextInt(20) - 5; 
+            starVelocities[i][1] = random.nextInt(20) - 5;
         }
 
         addMouseMotionListener(new MouseMotionListener() {
@@ -90,8 +88,7 @@ class mypanel extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                playsound play = new playsound();
-                play.start();
+
             }
 
             @Override
@@ -126,6 +123,11 @@ class mypanel extends JPanel {
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < starSize) {
+
+                    // เล่นเสียงชน
+                    playsound playSword = new playsound(); // เล่นเสียงชน
+                    playSword.start();
+
                     // เด้งกลับโดยการสลับความเร็วในแกน x และ y
                     int[] tempVelocity = starVelocities[i];
                     starVelocities[i] = starVelocities[j];
@@ -171,30 +173,23 @@ class mypanel extends JPanel {
 }
 
 class playsound extends Thread {
+
     @Override
     public void run() {
-        while (true) { 
-             try {
-            File stars = new File(System.getProperty("user.dir") +
-             File.separator + "stars.wav");
-    
-                AudioInputStream stream = AudioSystem.getAudioInputStream(stars);
-                AudioFormat format = stream.getFormat();
-                DataLine.Info info = new DataLine.Info(Clip.class, format);
-                Clip clip = (Clip) AudioSystem.getLine(info);
-                clip.open(stream);
-                clip.start();
-                Thread.sleep(1000); // เล่นเสียง 1 วินาที
-                clip.close();
-          
+        try {
+            // โหลดไฟล์เสียง
+            String FileSound = "sword.wav";
+            File file = new File(FileSound);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+
         } catch (Exception exx) {
             exx.printStackTrace();
         }
-        
     }
-    
- }
-      
 }
 
 class myThread extends Thread {
@@ -203,6 +198,7 @@ class myThread extends Thread {
     public myThread(mypanel panel) {
         this.panel = panel;
     }
+
     @Override
     public void run() {
         while (true) {
