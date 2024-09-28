@@ -274,10 +274,18 @@ class mypanel extends JPanel {
     // Collision detection between stars
     public void checkCollision() {
         for (int i = 0; i < stars.length; i++) {
+            if (!isClickStar[i]) {
+                continue;
+                
+            }
             for (int j = i + 1; j < stars.length; j++) {
+                if (!isClickStar[j]) {
+                    continue;
+                    
+                }
                 int dx = starPositions[i][0] - starPositions[j][0];
                 int dy = starPositions[i][1] - starPositions[j][1];
-                double distance = Math.sqrt(dx * dx + dy * dy);
+                double distance = Math.sqrt(dx * dx + dy * dy) + 1 ;
 
                 if (distance < starSize) {
                     // Swap velocities for elastic collision
@@ -291,27 +299,34 @@ class mypanel extends JPanel {
 
     // Update the stars' positions and handle boundary collisions
     public void updateStars() {
+        checkCollision();
+        
         if (gameWon) {
             return;  // Stop updating stars if the game is won
         }
 
         for (int i = 0; i < stars.length; i++) {
+            if (!isClickStar[i]) {
+                continue;
+            }
+
+
             starPositions[i][0] += starVelocities[i][0];
             starPositions[i][1] += starVelocities[i][1];
 
             // Bounce off the edges
             if (starPositions[i][0] <= 0 || starPositions[i][0] >= getWidth() - starSize) {
-                starVelocities[i][0] = -starVelocities[i][0];
+                starVelocities[i][0] = - starVelocities[i][0];
             }
 
             if (starPositions[i][1] <= 0 || starPositions[i][1] >= getHeight() - starSize) {
                 starVelocities[i][1] = -starVelocities[i][1];
             }
         }
-        checkCollision();
+
         repaint();
     }
-
+        
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -335,7 +350,7 @@ class mypanel extends JPanel {
         if (gameWon) {
             g.setFont(new Font("Mali", Font.BOLD, 72));
             g.setColor(Color.orange);
-            g.drawString("YOU WIN!", getWidth() / 2 - 150 , getHeight() / 2);
+            g.drawString("YOU WIN!", getWidth() / 2 - 125 , getHeight() / 2);
             
         }
     }
