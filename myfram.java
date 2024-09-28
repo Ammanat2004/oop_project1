@@ -143,15 +143,15 @@ class mypanel extends JPanel {
         switch (direction) {
             case 0: // แนวตั้ง
                 starVelocities[i][0] = 0; // ไม่มีการเคลื่อนที่แนวนอน
-                starVelocities[i][1] = random.nextInt(20) + 1; // เคลื่อนที่ขึ้นหรือลง
+                starVelocities[i][1] = random.nextInt(10) + 1; // เคลื่อนที่ขึ้นหรือลง
                 break;
             case 1: // แนวนอน
-                starVelocities[i][0] = random.nextInt(20) + 1;  // เคลื่อนที่ซ้ายหรือขวา
+                starVelocities[i][0] = random.nextInt(10) + 1;  // เคลื่อนที่ซ้ายหรือขวา
                 starVelocities[i][1] = 0; // ไม่มีการเคลื่อนที่แนวตั้ง
                 break;
             case 2: // แนวทะแยง
-                starVelocities[i][0] = random.nextInt(20) + 1;  // เคลื่อนที่ซ้ายหรือขวา
-                starVelocities[i][1] = random.nextInt(20) + 1;  // เคลื่อนที่ขึ้นหรือลง
+                starVelocities[i][0] = random.nextInt(10) + 1;  // เคลื่อนที่ซ้ายหรือขวา
+                starVelocities[i][1] = random.nextInt(10) + 1;  // เคลื่อนที่ขึ้นหรือลง
                 break;
         }
     }
@@ -272,61 +272,76 @@ class mypanel extends JPanel {
     }
 
     // Collision detection between stars
-    public void checkCollision() {
-        for (int i = 0; i < stars.length; i++) {
-            if (!isClickStar[i]) {
+   // Collision detection between stars
+public void checkCollision() {
+    for (int i = 0; i < stars.length; i++) {
+        if (!isClickStar[i]) {
+            continue;
+        }
+        for (int j = i + 1; j < stars.length; j++) {
+            if (!isClickStar[j]) {
                 continue;
-                
             }
-            for (int j = i + 1; j < stars.length; j++) {
-                if (!isClickStar[j]) {
-                    continue;
-                    
-                }
-                int dx = starPositions[i][0] - starPositions[j][0];
-                int dy = starPositions[i][1] - starPositions[j][1];
-                double distance = Math.sqrt(dx * dx + dy * dy) + 1 ;
+            int dx = starPositions[i][0] - starPositions[j][0];
+            int dy = starPositions[i][1] - starPositions[j][1];
+            double distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < starSize) {
-                    // Swap velocities for elastic collision
-                    int[] tempVelocity = starVelocities[i];
-                    starVelocities[i] = starVelocities[j];
-                    starVelocities[j] = tempVelocity;
-                }
+            if (distance < starSize) {
+                // ปรับตำแหน่งของดาวเพื่อป้องกันการติดกัน
+                double overlap = starSize - distance;
+                double moveX = (overlap * dx) / distance / 2;
+                double moveY = (overlap * dy) / distance / 2;
+                starPositions[i][0] += moveX;
+                starPositions[j][0] -= moveX;
+                starPositions[i][1] += moveY;
+                starPositions[j][1] -= moveY;
+
+                // Swap velocities for elastic collision
+                int[] tempVelocity = starVelocities[i];
+                starVelocities[i] = starVelocities[j];
+                starVelocities[j] = tempVelocity;
             }
         }
     }
+}
 
-    // Update the stars' positions and handle boundary collisions
-    public void updateStars() {
-        checkCollision();
-        
-        if (gameWon) {
-            return;  // Stop updating stars if the game is won
-        }
-
-        for (int i = 0; i < stars.length; i++) {
-            if (!isClickStar[i]) {
-                continue;
-            }
-
-
-            starPositions[i][0] += starVelocities[i][0];
-            starPositions[i][1] += starVelocities[i][1];
-
-            // Bounce off the edges
-            if (starPositions[i][0] <= 0 || starPositions[i][0] >= getWidth() - starSize) {
-                starVelocities[i][0] = - starVelocities[i][0];
-            }
-
-            if (starPositions[i][1] <= 0 || starPositions[i][1] >= getHeight() - starSize) {
-                starVelocities[i][1] = -starVelocities[i][1];
-            }
-        }
-
-        repaint();
+// Update the stars' positions and handle boundary collisions
+public void updateStars() {
+    checkCollision();
+    
+    if (gameWon) {
+        return;  // Stop updating stars if the game is won
     }
-        
+
+    for (int i = 0; i < stars.length; i++) {
+        if (!isClickStar[i]) {
+            continue;
+        }
+
+        starPositions[i][0] += starVelocities[i][0];
+        starPositions[i][1] += starVelocities[i][1];
+
+        // Bounce off the edges with better boundary handling
+        if (starPositions[i][0] < 0) {
+            starPositions[i][0] = 0;  // Prevent getting stuck at the edge
+            starVelocities[i][0] = -starVelocities[i][0];
+        } else if (starPositions[i][0] > getWidth() - starSize) {
+            starPositions[i][0] = getWidth() - starSize;
+            starVelocities[i][0] = -starVelocities[i][0];
+        }
+
+        if (starPositions[i][1] < 0) {
+            starPositions[i][1] = 0;
+            starVelocities[i][1] = -starVelocities[i][1];
+        } else if (starPositions[i][1] > getHeight() - starSize) {
+            starPositions[i][1] = getHeight() - starSize;
+            starVelocities[i][1] = -starVelocities[i][1];
+        }
+    }
+
+    repaint();
+}
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -367,7 +382,7 @@ class myThread extends Thread {
     public void run() {
         while (true) {
             try {
-                Thread.sleep(80);
+                Thread.sleep(30);
                 panel.updateStars();
 
             } catch (InterruptedException e) {
