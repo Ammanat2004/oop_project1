@@ -150,7 +150,7 @@ class mypanel extends JPanel {
                 starVelocities[i][1] = 0; // ไม่มีการเคลื่อนที่แนวตั้ง
                 break;
             case 2: // แนวทะแยง
-                starVelocities[i][0] = random.nextInt(10) + 1;  // เคลื่อนที่ซ้ายหรือขวา
+                starVelocities[i][0] = random.nextInt(10) + 1 ;  // เคลื่อนที่ซ้ายหรือขวา
                 starVelocities[i][1] = random.nextInt(10) + 1;  // เคลื่อนที่ขึ้นหรือลง
                 break;
         }
@@ -382,7 +382,7 @@ class myThread extends Thread {
     public void run() {
         while (true) {
             try {
-                Thread.sleep(30);
+                Thread.sleep(20);
                 panel.updateStars();
 
             } catch (InterruptedException e) {
