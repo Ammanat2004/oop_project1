@@ -23,11 +23,11 @@ import javax.swing.Timer;
 
 public class myfram {
     public static void main(String[] args) {
-        int numberOfStars = 10;
+        int N_Stars = 4;
         if (args.length > 0) {
             try {
-                numberOfStars = Integer.parseInt(args[0]);
-                if (numberOfStars < 0) {
+                N_Stars = Integer.parseInt(args[0]);
+                if (N_Stars < 0) {
                     System.out.println("Input yourStars > 0");
                     return;
                 }
@@ -36,7 +36,7 @@ public class myfram {
                 return;
             }
         }
-        gameframe gf = new gameframe(numberOfStars);
+        gameframe gf = new gameframe(N_Stars);
         myThread t1 = new myThread(gf.m);
         t1.start();
         gf.setVisible(true);
@@ -48,8 +48,8 @@ class gameframe extends JFrame {
     mypanel m;
     Clip backgroundMusic;
 
-    public gameframe(int numberOfStars) {
-        m = new mypanel(numberOfStars);
+    public gameframe(int N_Stars) {
+        m = new mypanel(N_Stars);
         setBounds(0, 0, 1536, 863);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -116,10 +116,9 @@ class mypanel extends JPanel {
     int starSize = 80;
     boolean showBomb = false;
     Timer bombTimer;
-    boolean gameWon = false;  // New variable to check if the game is won
-
-    public mypanel(int numberOfStars) {
-        this.n = numberOfStars;
+    boolean gameWon = false;  
+    public mypanel(int N_Stars) {
+        n = N_Stars;
         stars = new Image[n];
         starPositions = new int[n][2];
         starVelocities = new int[n][2];
@@ -138,22 +137,24 @@ class mypanel extends JPanel {
         starPositions[i][0] = random.nextInt(1000);
         starPositions[i][1] = random.nextInt(500);
 
-        // สุ่มทิศทาง 3 ทิศทางหลัก
-        int direction = random.nextInt(3); // 0 ถึง 2 สำหรับ 3 ทิศทาง
-        switch (direction) {
-            case 0: // แนวตั้ง
-                starVelocities[i][0] = 0; // ไม่มีการเคลื่อนที่แนวนอน
-                starVelocities[i][1] = random.nextInt(10) + 1; // เคลื่อนที่ขึ้นหรือลง
-                break;
-            case 1: // แนวนอน
-                starVelocities[i][0] = random.nextInt(10) + 1;  // เคลื่อนที่ซ้ายหรือขวา
-                starVelocities[i][1] = 0; // ไม่มีการเคลื่อนที่แนวตั้ง
-                break;
-            case 2: // แนวทะแยง
-                starVelocities[i][0] = random.nextInt(10) + 1 ;  // เคลื่อนที่ซ้ายหรือขวา
-                starVelocities[i][1] = random.nextInt(10) + 1;  // เคลื่อนที่ขึ้นหรือลง
-                break;
-        }
+    int direction = random.nextInt(3); // 0 to 2 for 3 directions
+    int speedX = random.nextInt(10) + 1; // Random horizontal speed
+    int speedY = random.nextInt(10) + 1; // Random vertical speed
+
+    switch (direction) {
+        case 0: // Vertical
+            starVelocities[i][0] = 0; // No horizontal movement
+            starVelocities[i][1] = speedY; // Vertical movement
+            break;
+        case 1: // Horizontal
+            starVelocities[i][0] = speedX;  // Horizontal movement
+            starVelocities[i][1] = 0; // No vertical movement
+            break;
+        case 2: // Diagonal
+            starVelocities[i][0] = speedX;  // Horizontal movement
+            starVelocities[i][1] = speedY;  // Vertical movement
+            break;
+    }
     }
         addMouseMotionListener(new MouseMotionListener() {
             @Override
@@ -174,59 +175,56 @@ class mypanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
             }
 
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (gameWon) return;  // Do nothing if the game is already won
+           @Override
+        public void mousePressed(MouseEvent e) {
+    if (gameWon) return;  // Do nothing if the game is already won
 
-                if (e.getClickCount() == 2) {
-                    bombx = e.getX();
-                    bomby = e.getY();
-                    showBomb = true;  // Show bomb
-                    repaint();
+    if (e.getClickCount() == 2) {
+        bombx = e.getX();
+        bomby = e.getY();
+        showBomb = true;  // Show bomb
+        repaint();
 
-                    // Play bomb sound
-                    try {
-                        String BlastSter = "meteorite.wav";
-                        File file = new File(BlastSter);
-                        AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
-                        Clip blast = (Clip) AudioSystem.getClip();
-                        blast.open(audioStream);
-                        blast.start();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
+        // Play bomb sound
+        try {
+            String BlastSter = "meteorite.wav";
+            File file = new File(BlastSter);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+            Clip blast = (Clip) AudioSystem.getClip();
+            blast.open(audioStream);
+            blast.start();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
-                    for (int i = 0; i < n; i++) {
-                        if (isClickStar[i] && bombx >= starPositions[i][0] && bombx <= starPositions[i][0] + 100
-                                && bomby >= starPositions[i][1] && bomby <= starPositions[i][1] + 100) {
-                            isClickStar[i] = false;
-                            isClick = true;
-                        }
-                    }
-
-                    // Show bomb effect and set a timer to hide it
-                    showBomb = true;
-
-                    if (bombTimer != null && bombTimer.isRunning()) {
-                        bombTimer.stop();
-                    }
-
-                    bombTimer = new Timer(700, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            showBomb = false;
-                            isClick = false;
-                        }
-                    });
-
-                    bombTimer.setRepeats(false);
-                    bombTimer.start();
-                    
-                    // Check if the game is won after each click
-                    checkWinCondition();
-                }
+        // Check if bomb hits a star
+        for (int i = 0; i < n; i++) {
+            if (isClickStar[i] && bombx >= starPositions[i][0] && bombx <= starPositions[i][0] + 100
+                    && bomby >= starPositions[i][1] && bomby <= starPositions[i][1] + 100) {
+                isClickStar[i] = false;
+                isClick = true;
             }
+        }
 
+        // Use a thread to hide the bomb after 700 milliseconds
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(700);  // Wait for 700 milliseconds
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                showBomb = false;
+                isClick = false;
+                repaint();
+            }
+        }).start();
+        
+        // Check if the game is won after each click
+        checkWinCondition();
+    }
+}
             @Override
             public void mouseReleased(MouseEvent e) {
             }
@@ -258,12 +256,12 @@ class mypanel extends JPanel {
     }
 
     // Stop the game and show a "You Win!" screen
-    public void stopGame() {
+    public void stopGame () {
         // Optionally stop the background music here
         repaint();
         
         // Delay and exit game or reset
-        new Timer(3000, new ActionListener() {
+        new Timer(700, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.exit(0);  // Exit the game after 3 seconds
@@ -318,24 +316,25 @@ public void updateStars() {
             continue;
         }
 
+        // Update the position of each star
         starPositions[i][0] += starVelocities[i][0];
         starPositions[i][1] += starVelocities[i][1];
 
-        // Bounce off the edges with better boundary handling
+        // Bounce off the edges
         if (starPositions[i][0] < 0) {
             starPositions[i][0] = 0;  // Prevent getting stuck at the edge
-            starVelocities[i][0] = -starVelocities[i][0];
+            starVelocities[i][0] = -starVelocities[i][0];  // Reflect horizontally
         } else if (starPositions[i][0] > getWidth() - starSize) {
             starPositions[i][0] = getWidth() - starSize;
-            starVelocities[i][0] = -starVelocities[i][0];
+            starVelocities[i][0] = -starVelocities[i][0];  // Reflect horizontally
         }
 
         if (starPositions[i][1] < 0) {
             starPositions[i][1] = 0;
-            starVelocities[i][1] = -starVelocities[i][1];
+            starVelocities[i][1] = -starVelocities[i][1];  // Reflect vertically
         } else if (starPositions[i][1] > getHeight() - starSize) {
             starPositions[i][1] = getHeight() - starSize;
-            starVelocities[i][1] = -starVelocities[i][1];
+            starVelocities[i][1] = -starVelocities[i][1];  // Reflect vertically
         }
     }
 
