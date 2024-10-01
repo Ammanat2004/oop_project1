@@ -21,10 +21,11 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+// คลาส  main หลัก
 public class myfram {
     public static void main(String[] args) {
         int N_Stars = 4;
-        if (args.length > 0) {
+        if (args.length > 0) {  ///////////////ใช้ในการรับจำนวนอุกกาบาต////////////////
             try {
                 N_Stars = Integer.parseInt(args[0]);
                 if (N_Stars < 0) {
@@ -45,6 +46,8 @@ public class myfram {
     }
 }
 
+
+//////// คลาส เฟรมหลัก ///////////
 class gameframe extends JFrame {
 
     mypanel m;
@@ -94,7 +97,7 @@ class gameframe extends JFrame {
     }
 }
 
-
+//////////// คลาส panel ในการวาดจอลงใน frame หลัก
 class mypanel extends JPanel {
     int n;
     Image[] stars;
@@ -139,14 +142,16 @@ class mypanel extends JPanel {
                 .createImage(System.getProperty("user.dir") + File.separator + (i % 10 + 1) + ".png");
         isClickStar[i] = true;
 
-        // สุ่มตำแหน่ง
+        // สุ่มตำแหน่ง ภายในเฟรม
         starPositions[i][0] = random.nextInt(1000);
         starPositions[i][1] = random.nextInt(500);
 
-    int direction = random.nextInt(3); // 0 to 2 for 3 directions
+        ///////สุ่มความเร็ว 8 ทิศทาง/////////////
+    int direction = random.nextInt(8); // 0 to 2 for 3 directions
     int speedX = random.nextInt(10) + 1; // Random horizontal speed
     int speedY = random.nextInt(10) + 1; // Random vertical speed
 
+    ///////////////////////การสุ่มการเคลื่อนที่ทิศทาง 8 ทิศทาง///////////////////
     switch (direction) {
         case 0: // Vertical Up
             starVelocities[i][0] = 0;      // No horizontal movement
@@ -183,6 +188,7 @@ class mypanel extends JPanel {
     }
     
     }
+     // เป้าเกมส์
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -193,7 +199,7 @@ class mypanel extends JPanel {
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                // Optional: Implement dragging functionality
+                
             }
         });
 
@@ -202,6 +208,7 @@ class mypanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
             }
 
+            // คลิกอุกกาบาต ยิงอุกกาบาต
            @Override
            public void mousePressed(MouseEvent e) {
                if (e.getClickCount() == 2) {
@@ -245,7 +252,7 @@ class mypanel extends JPanel {
                        gameWon = true;
                    }
            
-                   // Use a thread to hide the bomb after 700 milliseconds
+                   // ใช้เทรดควบคุมการยิงระเบิด
                    new Thread(new Runnable() {
                        @Override
                        public void run() {
@@ -275,7 +282,7 @@ class mypanel extends JPanel {
             }
         });
         
-        // Hide cursor
+        // ซ่อนเมาส์
         BufferedImage Img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
         Cursor hide = Toolkit.getDefaultToolkit().createCustomCursor(Img, new Point(8, 8), "blank mouse");
         setCursor(hide);
@@ -283,17 +290,17 @@ class mypanel extends JPanel {
 
    
 
-    // Collision detection between stars
-   // Collision detection between stars
+    // เช็คทิศทางของดวงดาว และการชนดวงดาว/////////
 public void checkCollision() {
-    for (int i = 0; i < stars.length; i++) {
+    for (int i = 0; i < stars.length; i++) {  //เมื่อยิงเสร็จจะข้ามตำแหน่งดาวที่ยิงไป
         if (!isClickStar[i]) {
             continue;
         }
-        for (int j = i + 1; j < stars.length; j++) {
+        for (int j = i + 1; j < stars.length; j++) {//เมื่อยิงเสร็จจะข้ามตำแหน่งดาวที่ยิงไป
             if (!isClickStar[j]) {
                 continue;
             }
+            // หาระยะห่างของดวงดาว
             int dx = starPositions[i][0] - starPositions[j][0];
             int dy = starPositions[i][1] - starPositions[j][1];
             double distance = Math.sqrt(dx * dx + dy * dy);
@@ -308,7 +315,7 @@ public void checkCollision() {
                 starPositions[i][1] += moveY;
                 starPositions[j][1] -= moveY;
 
-                // Swap velocities for elastic collision
+                // ความเร็วของดวงดาว
                 int[] tempVelocity = starVelocities[i];
                 starVelocities[i] = starVelocities[j];
                 starVelocities[j] = tempVelocity;
@@ -317,14 +324,14 @@ public void checkCollision() {
     }
 }
 
-// Update the stars' positions and handle boundary collisions
+// //////////// อัพเดต ตำแหน่งความเร็วต่างๆ ของดวงดาว
 public void updateStars() {
     for (int i = 0; i < stars.length; i++) {
         if (!isClickStar[i]) {
             continue;
         }
 
-        // Update the position of each star
+        // อัพเดตตำแหน่งของดาว
         starPositions[i][0] += starVelocities[i][0];
         starPositions[i][1] += starVelocities[i][1];
 
@@ -338,7 +345,7 @@ public void updateStars() {
         }
 
 
-
+        // อัพเดตความเร็ว
         if (starPositions[i][1] < 0) {
             starPositions[i][1] = 0;
             starVelocities[i][1] = -starVelocities[i][1];  // Reflect vertically
@@ -352,6 +359,7 @@ public void updateStars() {
     repaint();
 }
 
+// ใช้วาด ภาพต่างๆลงใน เฟรม ลงในโปรแกรม
 @Override
 protected void paintComponent(Graphics g) {
 
@@ -431,7 +439,7 @@ class Mytime extends Thread {
     
    
 
-
+// เทรดควบคุม การทำงานต่างๆ ใน โปรแกรม ควบคุมการเคลื่อนที่ของดาว
 class myThread extends Thread {
     mypanel panel;
     Mytime time; // สร้างตัวแปรเพื่อเก็บ instance ของ MyTime
