@@ -37,8 +37,10 @@ public class myfram {
             }
         }
         gameframe gf = new gameframe(N_Stars);
-        myThread t1 = new myThread(gf.m);
-        t1.start();
+        Mytime t1 = new Mytime(); // เรียกใช้งาน Mytime
+        myThread gameThread = new myThread(gf.m, t1); // ส่ง panel และ Mytime เข้าไปใน myThread
+        gameThread.start();
+        t1.start(); // เริ่มจับเวลา
         gf.setVisible(true);
     }
 }
@@ -108,6 +110,9 @@ class mypanel extends JPanel {
 
     boolean isClick = false;
     boolean[] isClickStar;
+    boolean gameAnd = false;
+
+    
 
     Image img = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bgk.jpg");
     Image bomb = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bomb.gif");
@@ -117,6 +122,7 @@ class mypanel extends JPanel {
     boolean showBomb = false;
     Timer bombTimer;
     boolean gameWon = false;  
+
     public mypanel(int N_Stars) {
         n = N_Stars;
         stars = new Image[n];
@@ -142,19 +148,40 @@ class mypanel extends JPanel {
     int speedY = random.nextInt(10) + 1; // Random vertical speed
 
     switch (direction) {
-        case 0: // Vertical
-            starVelocities[i][0] = 0; // No horizontal movement
-            starVelocities[i][1] = speedY; // Vertical movement
+        case 0: // Vertical Up
+            starVelocities[i][0] = 0;      // No horizontal movement
+            starVelocities[i][1] = -speedY; // Move up
             break;
-        case 1: // Horizontal
-            starVelocities[i][0] = speedX;  // Horizontal movement
-            starVelocities[i][1] = 0; // No vertical movement
+        case 1: // Horizontal Right
+            starVelocities[i][0] = speedX;  // Move right
+            starVelocities[i][1] = 0;      // No vertical movement
             break;
-        case 2: // Diagonal
-            starVelocities[i][0] = speedX;  // Horizontal movement
-            starVelocities[i][1] = speedY;  // Vertical movement
+        case 2: // Diagonal Top-Right
+            starVelocities[i][0] = speedX;  // Move right
+            starVelocities[i][1] = -speedY; // Move up
+            break;
+        case 3: // Vertical Down
+            starVelocities[i][0] = 0;      // No horizontal movement
+            starVelocities[i][1] = speedY; // Move down
+            break;
+        case 4: // Horizontal Left
+            starVelocities[i][0] = -speedX; // Move left
+            starVelocities[i][1] = 0;      // No vertical movement
+            break;
+        case 5: // Diagonal Top-Left
+            starVelocities[i][0] = -speedX; // Move left
+            starVelocities[i][1] = -speedY; // Move up
+            break;
+        case 6: // Diagonal Bottom-Right
+            starVelocities[i][0] = speedX;  // Move right
+            starVelocities[i][1] = speedY;  // Move down
+            break;
+        case 7: // Diagonal Bottom-Left
+            starVelocities[i][0] = -speedX; // Move left
+            starVelocities[i][1] = speedY;  // Move down
             break;
     }
+    
     }
         addMouseMotionListener(new MouseMotionListener() {
             @Override
@@ -176,55 +203,65 @@ class mypanel extends JPanel {
             }
 
            @Override
-        public void mousePressed(MouseEvent e) {
-    if (gameWon) return;  // Do nothing if the game is already won
-
-    if (e.getClickCount() == 2) {
-        bombx = e.getX();
-        bomby = e.getY();
-        showBomb = true;  // Show bomb
-        repaint();
-
-        // Play bomb sound
-        try {
-            String BlastSter = "meteorite.wav";
-            File file = new File(BlastSter);
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
-            Clip blast = (Clip) AudioSystem.getClip();
-            blast.open(audioStream);
-            blast.start();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        // Check if bomb hits a star
-        for (int i = 0; i < n; i++) {
-            if (isClickStar[i] && bombx >= starPositions[i][0] && bombx <= starPositions[i][0] + 100
-                    && bomby >= starPositions[i][1] && bomby <= starPositions[i][1] + 100) {
-                isClickStar[i] = false;
-                isClick = true;
-            }
-        }
-
-        // Use a thread to hide the bomb after 700 milliseconds
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(700);  // Wait for 700 milliseconds
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-                showBomb = false;
-                isClick = false;
-                repaint();
-            }
-        }).start();
-        
-        // Check if the game is won after each click
-        checkWinCondition();
-    }
-}
+           public void mousePressed(MouseEvent e) {
+               if (e.getClickCount() == 2) {
+                   bombx = e.getX();
+                   bomby = e.getY();
+                   showBomb = true;
+                   repaint();
+           
+                   // Play bomb sound
+                   try {
+                       String BlastSter = "meteorite.wav";
+                       File file = new File(BlastSter);
+                       AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+                       Clip blast = (Clip) AudioSystem.getClip();
+                       blast.open(audioStream);
+                       blast.start();
+                   } catch (Exception ex) {
+                       ex.printStackTrace();
+                   }
+           
+                   // ตรวจสอบว่าดาวถูกคลิกหรือไม่
+                   for (int i = 0; i < n; i++) {
+                       if (isClickStar[i] && bombx >= starPositions[i][0] && bombx <= starPositions[i][0] + 100
+                               && bomby >= starPositions[i][1] && bomby <= starPositions[i][1] + 100) {
+                           isClickStar[i] = false;  // ดาวถูกคลิก
+                           isClick = true;
+                       }
+                   }
+           
+                   // ตรวจสอบว่าผู้เล่นคลิกดาวครบทุกดวงหรือไม่
+                   boolean allStarsClicked = true;
+                   for (boolean star : isClickStar) {
+                       if (star) {
+                           allStarsClicked = false;
+                           break;
+                       }
+                   }
+           
+                   // หากคลิกครบทุกดวงแล้ว ให้หยุดเกม
+                   if (allStarsClicked) {
+                       gameWon = true;
+                   }
+           
+                   // Use a thread to hide the bomb after 700 milliseconds
+                   new Thread(new Runnable() {
+                       @Override
+                       public void run() {
+                           try {
+                               Thread.sleep(700);
+                           } catch (InterruptedException ex) {
+                               ex.printStackTrace();
+                           }
+                           showBomb = false;
+                           isClick = false;
+                           repaint();
+                       }
+                   }).start();
+               }
+           }
+           
             @Override
             public void mouseReleased(MouseEvent e) {
             }
@@ -244,30 +281,7 @@ class mypanel extends JPanel {
         setCursor(hide);
     }
 
-    // Method to check if the game is won
-    public void checkWinCondition() {
-        for (boolean clicked : isClickStar) {
-            if (clicked) {
-                return;  // If any star is still not clicked, return
-            }
-        }
-        gameWon = true;  // If all stars are clicked, game is won
-        stopGame();
-    }
-
-    // Stop the game and show a "You Win!" screen
-    public void stopGame () {
-        // Optionally stop the background music here
-        repaint();
-        
-        // Delay and exit game or reset
-        new Timer(700, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);  // Exit the game after 3 seconds
-            }
-        }).start();
-    }
+   
 
     // Collision detection between stars
    // Collision detection between stars
@@ -305,12 +319,6 @@ public void checkCollision() {
 
 // Update the stars' positions and handle boundary collisions
 public void updateStars() {
-    checkCollision();
-    
-    if (gameWon) {
-        return;  // Stop updating stars if the game is won
-    }
-
     for (int i = 0; i < stars.length; i++) {
         if (!isClickStar[i]) {
             continue;
@@ -329,6 +337,8 @@ public void updateStars() {
             starVelocities[i][0] = -starVelocities[i][0];  // Reflect horizontally
         }
 
+
+
         if (starPositions[i][1] < 0) {
             starPositions[i][1] = 0;
             starVelocities[i][1] = -starVelocities[i][1];  // Reflect vertically
@@ -337,56 +347,114 @@ public void updateStars() {
             starVelocities[i][1] = -starVelocities[i][1];  // Reflect vertically
         }
     }
+    checkCollision();
 
     repaint();
 }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.drawImage(img, 0, 0, this.getWidth(), this.getHeight(), this);
+@Override
+protected void paintComponent(Graphics g) {
 
-        for (int i = 0; i < n; i++) {
-            if (isClickStar[i]) {
-                int x = starPositions[i][0];
-                int y = starPositions[i][1];
-                g.drawImage(stars[i], x, y, starSize, starSize, this);
-            }
+    g.drawImage(img, 0, 0, this.getWidth(), this.getHeight(), this);
+    
+    for (int i = 0; i < n; i++) {
+        if (isClickStar[i]) {
+            int x = starPositions[i][0];
+            int y = starPositions[i][1];
+            g.drawImage(stars[i], x, y, starSize, starSize, this);
         }
+    }
 
-        if (isClick) {
-            g.drawImage(bomb, bombx - 40, bomby - 40, 80, 80, this);
-        }
+    if (isClick) {
+        g.drawImage(bomb, bombx - 40, bomby - 40, 80, 80, this);
+    }
 
-        g.drawImage(gunner, gunnerX - 20, gunnerY - 20, 40, 40, this);
+    g.drawImage(gunner, gunnerX - 20, gunnerY - 20, 40, 40, this);
 
-        // Display "You Win" message if game is won
-        if (gameWon) {
-            g.setFont(new Font("Mali", Font.BOLD, 72));
-            g.setColor(Color.orange);
-            g.drawString("YOU WIN!", getWidth() / 2 - 125 , getHeight() / 2);
-            
-        }
+    // แสดงข้อความ "Game Over" เมื่อผู้เล่นคลิกดาวครบทุกดวง
+    if (gameWon) {
+        g.setFont(new Font("Arial", Font.BOLD, 48));
+        g.setColor(Color.RED);
+        g.drawString("Game Over!", getWidth() / 2 - 150, getHeight() / 2);
     }
 }
 
+}
+class Mytime extends Thread {
+    boolean running = true;
+    int milisec = 0;
+    int second = 0;
+    int minute = 0;
+    int hour = 0;
+    mypanel p;
+    int maxGameTime = 10;  // ระยะเวลาเกมในหน่วยวินาที
+
+    @Override
+    public void run() {
+        while (running) {
+            try {
+                Thread.sleep(1);
+                milisec++;
+
+                if (milisec == 1000) {
+                    second++;
+                    milisec = 0;
+                }
+                if (second == 60) {
+                    minute++;
+                    second = 0;
+                }
+                if (minute == 60) {
+                    hour++;
+                    minute = 0;
+                }
+
+                // หยุดเกมเมื่อเวลาถึงที่กำหนด
+                if (second >= maxGameTime) {
+                    running = false;  // หยุดตัวจับเวลา
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void getStopTime() {
+        running = false;
+    }
+
+    public String Return() {
+        return ("Time : " + hour + " : " + minute + " : " + second + " : " + milisec);
+    }
+}
+
+    
+   
+
+
 class myThread extends Thread {
     mypanel panel;
+    Mytime time; // สร้างตัวแปรเพื่อเก็บ instance ของ MyTime
 
-    public myThread(mypanel panel) {
+    public myThread(mypanel panel, Mytime time) {
         this.panel = panel;
+        this.time = time;
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (!panel.gameWon) {  // เกมยังไม่จบ
             try {
                 Thread.sleep(20);
-                panel.updateStars();
-
+                panel.updateStars();  // อัปเดตตำแหน่งของดาว
+    
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
         }
+    
+        // เมื่อเกมจบ ให้ repaint เพื่อแสดงข้อความ "Game Over"
+        panel.repaint();
     }
+    
 }
