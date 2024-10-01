@@ -38,9 +38,8 @@ public class myfram {
             }
         }
         gameframe gf = new gameframe(N_Stars);
-        Mytime t1 = new Mytime(); // เรียกใช้งาน Mytime
-        myThread gameThread = new myThread(gf.m, t1); // ส่ง panel และ Mytime เข้าไปใน myThread
-        gameThread.start();
+        myThread t1 = new myThread(gf.m, gf.time); // ส่ง panel และ Mytime เข้าไปใน myThread
+       
         t1.start(); // เริ่มจับเวลา
         gf.setVisible(true);
     }
@@ -49,12 +48,14 @@ public class myfram {
 
 //////// คลาส เฟรมหลัก ///////////
 class gameframe extends JFrame {
-
     mypanel m;
     Clip backgroundMusic;
+    Mytime time; // Add a reference to Mytime
 
     public gameframe(int N_Stars) {
-        m = new mypanel(N_Stars);
+        time = new Mytime(); // Create Mytime instance
+        m = new mypanel(N_Stars, time); // Pass Mytime to mypanel
+        time.p = m;
         setBounds(0, 0, 1536, 863);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -103,6 +104,7 @@ class mypanel extends JPanel {
     Image[] stars;
     int[][] starPositions;
     int[][] starVelocities;
+    Mytime time; // Add Mytime reference
 
     int gunnerX = 0;
     int gunnerY = 0;
@@ -113,9 +115,6 @@ class mypanel extends JPanel {
 
     boolean isClick = false;
     boolean[] isClickStar;
-    
-
-    
 
     Image img = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bgk.jpg");
     Image bomb = Toolkit.getDefaultToolkit().createImage(System.getProperty("user.dir") + File.separator + "bomb.gif");
@@ -124,9 +123,11 @@ class mypanel extends JPanel {
     int starSize = 80;
     boolean showBomb = false;
     Timer bombTimer;
-    boolean gameAnd = false;  
+    boolean gameAnd = false;
 
-    public mypanel(int N_Stars) {
+    // Updated constructor to accept Mytime
+    public mypanel(int N_Stars, Mytime time) {
+        this.time = time; // Store the time instance
         n = N_Stars;
         stars = new Image[n];
         starPositions = new int[n][2];
@@ -136,56 +137,29 @@ class mypanel extends JPanel {
         setLayout(new BorderLayout());
 
         // Randomize the initial positions and velocities of stars
-       // สุ่มตำแหน่งและความเร็วเริ่มต้นของดาว
-       for (int i = 0; i < n; i++) {
-        stars[i] = Toolkit.getDefaultToolkit()
+        for (int i = 0; i < n; i++) {
+            stars[i] = Toolkit.getDefaultToolkit()
                 .createImage(System.getProperty("user.dir") + File.separator + (i % 10 + 1) + ".png");
-        isClickStar[i] = true;
+            isClickStar[i] = true;
+            starPositions[i][0] = random.nextInt(1000);
+            starPositions[i][1] = random.nextInt(500);
 
-        // สุ่มตำแหน่ง ภายในเฟรม
-        starPositions[i][0] = random.nextInt(1000);
-        starPositions[i][1] = random.nextInt(500);
+            int direction = random.nextInt(8);
+            int speedX = random.nextInt(10) + 1;
+            int speedY = random.nextInt(10) + 1;
 
-        ///////สุ่มความเร็ว 8 ทิศทาง/////////////
-    int direction = random.nextInt(8); // 0 to 2 for 3 directions
-    int speedX = random.nextInt(10) + 1; // Random horizontal speed
-    int speedY = random.nextInt(10) + 1; // Random vertical speed
+            switch (direction) {
+                case 0: starVelocities[i][0] = 0; starVelocities[i][1] = -speedY; break;
+                case 1: starVelocities[i][0] = speedX; starVelocities[i][1] = 0; break;
+                case 2: starVelocities[i][0] = speedX; starVelocities[i][1] = -speedY; break;
+                case 3: starVelocities[i][0] = 0; starVelocities[i][1] = speedY; break;
+                case 4: starVelocities[i][0] = -speedX; starVelocities[i][1] = 0; break;
+                case 5: starVelocities[i][0] = -speedX; starVelocities[i][1] = -speedY; break;
+                case 6: starVelocities[i][0] = speedX; starVelocities[i][1] = speedY; break;
+                case 7: starVelocities[i][0] = -speedX; starVelocities[i][1] = speedY; break;
+            }
+        
 
-    ///////////////////////การสุ่มการเคลื่อนที่ทิศทาง 8 ทิศทาง///////////////////
-    switch (direction) {
-        case 0: // Vertical Up
-            starVelocities[i][0] = 0;      // No horizontal movement
-            starVelocities[i][1] = -speedY; // Move up
-            break;
-        case 1: // Horizontal Right
-            starVelocities[i][0] = speedX;  // Move right
-            starVelocities[i][1] = 0;      // No vertical movement
-            break;
-        case 2: // Diagonal Top-Right
-            starVelocities[i][0] = speedX;  // Move right
-            starVelocities[i][1] = -speedY; // Move up
-            break;
-        case 3: // Vertical Down
-            starVelocities[i][0] = 0;      // No horizontal movement
-            starVelocities[i][1] = speedY; // Move down
-            break;
-        case 4: // Horizontal Left
-            starVelocities[i][0] = -speedX; // Move left
-            starVelocities[i][1] = 0;      // No vertical movement
-            break;
-        case 5: // Diagonal Top-Left
-            starVelocities[i][0] = -speedX; // Move left
-            starVelocities[i][1] = -speedY; // Move up
-            break;
-        case 6: // Diagonal Bottom-Right
-            starVelocities[i][0] = speedX;  // Move right
-            starVelocities[i][1] = speedY;  // Move down
-            break;
-        case 7: // Diagonal Bottom-Left
-            starVelocities[i][0] = -speedX; // Move left
-            starVelocities[i][1] = speedY;  // Move down
-            break;
-    }
     
     }
      // เป้าเกมส์
@@ -248,8 +222,10 @@ class mypanel extends JPanel {
                    }
            
                    // หากคลิกครบทุกดวงแล้ว ให้หยุดเกม
-                   if (allStarsClicked) {
+                   if (allStarsClicked && !gameAnd) {
                        gameAnd = true;
+                       time.getStopTime();
+                       repaint();
                    }
            
                    // ใช้เทรดควบคุมการยิงระเบิด
@@ -371,7 +347,7 @@ public void updateStars() {
 // ใช้วาด ภาพต่างๆลงใน เฟรม ลงในโปรแกรม
 @Override
 protected void paintComponent(Graphics g) {
-
+    super.paintComponent(g);
     g.drawImage(img, 0, 0, this.getWidth(), this.getHeight(), this);
     
     for (int i = 0; i < n; i++) {
@@ -388,14 +364,17 @@ protected void paintComponent(Graphics g) {
 
     g.drawImage(gunner, gunnerX - 20, gunnerY - 20, 40, 40, this);
 
-    // แสดงข้อความ "Game Over" เมื่อผู้เล่นคลิกดาวครบทุกดวง
     if (gameAnd) {
         g.setFont(new Font("Arial", Font.BOLD, 72));
         g.setColor(Color.ORANGE);
-        g.drawString("! Victory ! ", getWidth() / 2 - 150, getHeight() / 2);
+        g.drawString("You Win !", getWidth() / 2 - 150, getHeight() / 2 - 50);
+        
+        // Display the elapsed time when the game ends
+        g.setFont(new Font("Arial", Font.BOLD, 36));
+        g.setColor(Color.WHITE);
+        g.drawString(time.Return(), getWidth() / 2 - 150, getHeight() / 2 + 50);
     }
 }
-
 }
 class Mytime extends Thread {
     boolean running = true;
@@ -404,14 +383,13 @@ class Mytime extends Thread {
     int minute = 0;
     int hour = 0;
     mypanel p;
-  
 
     @Override
     public void run() {
         while (running) {
             try {
-                Thread.sleep(1);
-                milisec++;
+                Thread.sleep(1); // ลดการ sleep เพื่อไม่ต้องละเอียดถึงระดับมิลลิวินาที
+                milisec ++; // 
 
                 if (milisec == 1000) {
                     second++;
@@ -426,7 +404,10 @@ class Mytime extends Thread {
                     minute = 0;
                 }
 
-            
+                // Repaint the panel to show the updated time
+                if (p != null) {
+                    p.repaint();
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -441,6 +422,7 @@ class Mytime extends Thread {
         return ("Time : " + hour + " : " + minute + " : " + second + " : " + milisec);
     }
 }
+
 
     
    
@@ -468,6 +450,7 @@ class myThread extends Thread {
         }
     
         // เมื่อเกมจบ ให้ repaint เพื่อแสดงข้อความ "Game Over"
+        time.getStopTime();
         panel.repaint();
     }
     
