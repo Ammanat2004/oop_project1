@@ -24,7 +24,7 @@ import javax.swing.Timer;
 // คลาส  main หลัก
 public class myfram {
     public static void main(String[] args) {
-        int N_Stars = 4;
+        int N_Stars = 10;
         if (args.length > 0) {  ///////////////ใช้ในการรับจำนวนอุกกาบาต////////////////
             try {
                 N_Stars = Integer.parseInt(args[0]);
@@ -113,7 +113,7 @@ class mypanel extends JPanel {
 
     boolean isClick = false;
     boolean[] isClickStar;
-    boolean gameAnd = false;
+    
 
     
 
@@ -124,7 +124,7 @@ class mypanel extends JPanel {
     int starSize = 80;
     boolean showBomb = false;
     Timer bombTimer;
-    boolean gameWon = false;  
+    boolean gameAnd = false;  
 
     public mypanel(int N_Stars) {
         n = N_Stars;
@@ -249,7 +249,7 @@ class mypanel extends JPanel {
            
                    // หากคลิกครบทุกดวงแล้ว ให้หยุดเกม
                    if (allStarsClicked) {
-                       gameWon = true;
+                       gameAnd = true;
                    }
            
                    // ใช้เทรดควบคุมการยิงระเบิด
@@ -290,13 +290,13 @@ class mypanel extends JPanel {
 
    
 
-    // เช็คทิศทางของดวงดาว และการชนดวงดาว/////////
+// เช็คทิศทางของดวงดาว และการชนดวงดาว
 public void checkCollision() {
-    for (int i = 0; i < stars.length; i++) {  //เมื่อยิงเสร็จจะข้ามตำแหน่งดาวที่ยิงไป
+    for (int i = 0; i < stars.length; i++) { // เมื่อยิงเสร็จจะข้ามตำแหน่งดาวที่ยิงไป
         if (!isClickStar[i]) {
             continue;
         }
-        for (int j = i + 1; j < stars.length; j++) {//เมื่อยิงเสร็จจะข้ามตำแหน่งดาวที่ยิงไป
+        for (int j = i + 1; j < stars.length; j++) { // เมื่อยิงเสร็จจะข้ามตำแหน่งดาวที่ยิงไป
             if (!isClickStar[j]) {
                 continue;
             }
@@ -315,14 +315,23 @@ public void checkCollision() {
                 starPositions[i][1] += moveY;
                 starPositions[j][1] -= moveY;
 
-                // ความเร็วของดวงดาว
-                int[] tempVelocity = starVelocities[i];
-                starVelocities[i] = starVelocities[j];
-                starVelocities[j] = tempVelocity;
+                // สุ่มความเร็วใหม่สำหรับดาวที่ชนกัน
+                Random random = new Random();
+                int newSpeedX_i = random.nextInt(10) + 1; // ความเร็วใหม่สำหรับดาว i
+                int newSpeedY_i = random.nextInt(10) + 1; // ความเร็วใหม่สำหรับดาว i
+                int newSpeedX_j = random.nextInt(10) + 1; // ความเร็วใหม่สำหรับดาว j
+                int newSpeedY_j = random.nextInt(10) + 1; // ความเร็วใหม่สำหรับดาว j
+                
+                // อัปเดตความเร็วของดาวที่ชนกัน
+                starVelocities[i][0] = newSpeedX_i * (random.nextBoolean() ? 1 : -1); // เลือกทิศทางแบบสุ่ม
+                starVelocities[i][1] = newSpeedY_i * (random.nextBoolean() ? 1 : -1); // เลือกทิศทางแบบสุ่ม
+                starVelocities[j][0] = newSpeedX_j * (random.nextBoolean() ? 1 : -1); // เลือกทิศทางแบบสุ่ม
+                starVelocities[j][1] = newSpeedY_j * (random.nextBoolean() ? 1 : -1); // เลือกทิศทางแบบสุ่ม
             }
         }
     }
 }
+
 
 // //////////// อัพเดต ตำแหน่งความเร็วต่างๆ ของดวงดาว
 public void updateStars() {
@@ -380,10 +389,10 @@ protected void paintComponent(Graphics g) {
     g.drawImage(gunner, gunnerX - 20, gunnerY - 20, 40, 40, this);
 
     // แสดงข้อความ "Game Over" เมื่อผู้เล่นคลิกดาวครบทุกดวง
-    if (gameWon) {
-        g.setFont(new Font("Arial", Font.BOLD, 48));
-        g.setColor(Color.RED);
-        g.drawString("Game Over!", getWidth() / 2 - 150, getHeight() / 2);
+    if (gameAnd) {
+        g.setFont(new Font("Arial", Font.BOLD, 72));
+        g.setColor(Color.ORANGE);
+        g.drawString("! Victory ! ", getWidth() / 2 - 150, getHeight() / 2);
     }
 }
 
@@ -395,7 +404,7 @@ class Mytime extends Thread {
     int minute = 0;
     int hour = 0;
     mypanel p;
-    int maxGameTime = 10;  // ระยะเวลาเกมในหน่วยวินาที
+  
 
     @Override
     public void run() {
@@ -417,10 +426,7 @@ class Mytime extends Thread {
                     minute = 0;
                 }
 
-                // หยุดเกมเมื่อเวลาถึงที่กำหนด
-                if (second >= maxGameTime) {
-                    running = false;  // หยุดตัวจับเวลา
-                }
+            
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -451,7 +457,7 @@ class myThread extends Thread {
 
     @Override
     public void run() {
-        while (!panel.gameWon) {  // เกมยังไม่จบ
+        while (!panel.gameAnd) {  // เกมยังไม่จบ
             try {
                 Thread.sleep(20);
                 panel.updateStars();  // อัปเดตตำแหน่งของดาว
