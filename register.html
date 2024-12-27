@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #d1dfe4, #203a43, #2c4564);
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 50px);
+            margin: 0;
+            text-align: center;
+            font-size: 20px;
+            color: #333;
+            margin-top: 70px; 
+        }
+
+        form {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            margin: 15px 0;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="date"],
+        input[type="file"],
+        input[type="number"] {
+            padding: 10px;
+            width: 250px;
+            border-radius: 30px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .success-message {
+            margin-top: 20px;
+            color: green;
+            font-size: 18px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+ 
+
+    <div class="container">
+        <form id="registerForm" onsubmit="saveData(event)">
+            <b>
+                <p>Register</p>
+            </b>
+            <p>Username: <input type="text" id="username" required></p>
+            <p>Password: <input type="password" id="password" required></p>
+            <p>Email: <input type="email" id="email" required></p>
+            <p>Date of Birth: <input type="date" id="dob" required></p>
+            <p>Profile Picture: <input type="file" id="profile_picture" accept="image/*"></p>
+            <p>Phone Number: <input type="number" id="phone" required></p>
+            <p><input type="submit" value="Register"></p>
+        </form>
+        <p class="success-message" id="successMessage">ลงทะเบียนสำเร็จ! กรุณาไปที่หน้าโปรไฟล์เพื่อดูข้อมูล</p>
+    </div>
+
+    <script>
+        function saveData(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('profile_picture');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const dob = document.getElementById('dob').value;
+            const phone = document.getElementById('phone').value;
+
+            if (fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    localStorage.setItem('profile_picture', reader.result);
+                    saveFormData(username, password, email, dob, phone);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveFormData(username, password, email, dob, phone);
+            }
+        }
+
+        function saveFormData(username, password, email, dob, phone) {
+            localStorage.setItem('username', username);
+            localStorage.setItem('password', password);
+            localStorage.setItem('email', email);
+            localStorage.setItem('dob', dob);
+            localStorage.setItem('phone', phone);
+
+            document.getElementById('registerForm').reset();
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

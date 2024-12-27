@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #d1dfe4, #203a43, #2c4564);
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba%28180, 180, 180, 1%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+        }
+
+        .navbar-nav .nav-link {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        .navbar {
+            background-color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 400px;
+            margin-top: 100px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            background: #fff;
+        }
+
+        .btn-primary {
+            background-color: #4facfe;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #00f2fe;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Login</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="checkLogin('profile.html')">โปรไฟล์</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="checkLogin('editing.html')">แก้ไขข้อมูล</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card p-5">
+            <div class="text-center mb-4">
+                <h1 class="fw-bold" style="color: #4facfe;">Login</h1>
+            </div>
+            <div class="mb-3">
+                <label for="uname" class="form-label">Username</label>
+                <input type="text" class="form-control" id="uname" placeholder="Enter your username" name="username">
+                <p class="text-muted" style="font-size: 0.85em;">We'll never share your email with anyone else.</p>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter your password"
+                    name="password">
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+            <div class="text-center">
+                <button onclick="Login()" type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
+                <label id="message"></label>
+            </div>
+            <div class="text-center mt-4">
+                <a href="register.html">
+                    <button type="button" class="btn btn-secondary">สมัครสมาชิก</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function Login() {
+            var user = $('#uname').val().trim();
+            var pass = $('#password').val().trim();
+
+            if (user === "admin" && pass === "1234") {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', user);
+                window.location.href = "profile.html";
+            } else {
+                $('#message').text('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+                $('#message').css("color", "red");
+            }
+        }
+
+        function checkLogin(targetPage) {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                window.location.href = targetPage;
+            } else {
+                alert('กรุณาเข้าสู่ระบบ');
+            }
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-wfSDF2oG6uE9UnHX6QxF5UpUQs3sF4puPRlDrxPRpkoF5DI97ozr45j1fQHujAnP"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

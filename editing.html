@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin-top: 2.5%;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #d1dfe4, #6a11cb, #2575fc);
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba%28180, 180, 180, 1%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+        }
+
+        .navbar-nav .nav-link {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        .navbar {
+            background-color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #2575fc;
+        }
+
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        .button-container button {
+            width: 48%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background-color: #e41f1f;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .button-container button {
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">แก้ไขข้อมูล</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="profile.html" >โปรไฟล์</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="edit-container">
+        <h1>Edit Profile</h1>
+        <form id="editForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="number" id="phone" name="phone" required>
+            </div>
+            <div class="form-group">
+                <label for="profile_picture">Profile Picture</label>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+            </div>
+            <div class="button-container">
+                <button type="button" class="submit-btn" onclick="updateProfile()">บันทึก</button>
+                <button type="button" class="cancel-btn" onclick="cancelUpdate()">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('username').value = localStorage.getItem('username') || '';
+        document.getElementById('email').value = localStorage.getItem('email') || '';
+        document.getElementById('dob').value = localStorage.getItem('dob') || '';
+        document.getElementById('phone').value = localStorage.getItem('phone') || '';
+
+        function updateProfile() {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const dob = document.getElementById('dob').value;
+            const phone = document.getElementById('phone').value;
+            const profilePicture = document.getElementById('profile_picture').files[0];
+
+            localStorage.setItem('username', username);
+            localStorage.setItem('email', email);
+            localStorage.setItem('dob', dob);
+            localStorage.setItem('phone', phone);
+
+            if (profilePicture) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    localStorage.setItem('profile_picture', reader.result);
+                };
+                reader.readAsDataURL(profilePicture);
+            }
+
+            alert("Profile updated successfully!");
+            window.location.href = "profile.html";
+        }
+
+        function cancelUpdate() {
+            window.location.href = "profile.html";
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                alert('กรุณาเข้าสู่ระบบ');
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>
